@@ -18,6 +18,9 @@
                             Adicionar usuário <i class="bi bi-person-fill-add"></i>
                             <a href="index.php" class="btn btn-danger float-end">Voltar</a>
                         </h4>
+                        <h1>
+                        Receba!!!
+                        </h1>
                     </div>
                     <div class="card-body">
                         <form action="acoes.php" method="POST">
