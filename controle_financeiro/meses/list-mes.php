@@ -15,7 +15,7 @@ $meses = mysqli_query($conn, $sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body>
+<body style="background-color: black;">
     <div class="px-3 py-2 text-bg-dark border-bottom">
         <div class="container">
             <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
@@ -50,15 +50,14 @@ $meses = mysqli_query($conn, $sql);
                     <div class="card-header">
                         <h4>
                             Lista de Meses <i class="bi bi-card-list"></i>
-                            <a href="/controle_financeiro/index.php" class="btn btn-danger float-end">Voltar</a>
-                            <a href="create-mes.php" class="btn btn-primary float-end" style="margin-right: 10px;">Adicionar Mes</a>
+                            <a href="/controle_financeiro/index.php" class="btn btn-ligth float-end"><i class="bi bi-arrow-return-left"></i></a>
+                            <a href="create-mes.php" class="btn btn-dark float-end" style="margin-right: 10px;">Adicionar Mes</a>
                         </h4>
                     </div>
                     <div class="card-body">
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Mes</th>
                                     <th>Ano</th>
                                     <th>Ações</th>
@@ -67,7 +66,6 @@ $meses = mysqli_query($conn, $sql);
                             <tbody>
                                 <?php while ($mes = mysqli_fetch_array($meses)) { ?>
                                     <tr>
-                                        <td><?php echo $mes['id']; ?></td>
                                         <td><?php echo $mes['mes']; ?></td>
                                         <td><?php echo $mes['ano']; ?></td>
                                         <td><a href="edit-mes.php?id=<?php echo $mes['id']; ?>" class="btn btn-success">Editar</a> <a href="delete-mes.php?id=<?php echo $mes['id']; ?>" class="btn btn-danger">Excluir</a></td>
