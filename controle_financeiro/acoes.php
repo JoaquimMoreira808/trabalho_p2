@@ -2,6 +2,8 @@
 session_start();
 require_once('conexao.php');
 
+
+//AÇÕES DE CATEGORIA
 if (isset($_POST['CreateCategoria'])) {
     $nome = trim($_POST['txtNome']);
 
@@ -9,15 +11,46 @@ if (isset($_POST['CreateCategoria'])) {
 
     mysqli_query($conn, $sql);
 
-    header('Location: index.php');
+    header('Location: /controle_financeiro/categorias/list-categoria.php');
     exit();
 }
 
+if(isset($_POST['EditCategoria'])) {
+    $id = $_POST['id'];
+    $nome = trim($_POST['txtNome']);
+
+    $sql = "UPDATE categoria SET nome = '$nome' WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Categoria atualizada com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/categorias/list-categoria.php');
+        exit;
+    }
+}
+
+if(isset($_POST['DeleteCategoria'])) {
+    $id = $_POST['id'];
+    $sql = "DELETE FROM categoria WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Categoria excluida com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/categorias/list-categoria.php');
+        exit;
+    }
+}
+
+
+//AÇÕES DE TRANSAÇÃO
 if (isset($_POST['CreateTransacao'])) {
 
     $descricao = mysqli_real_escape_string($conn, trim($_POST['TxtDescricao']));
     $categoria_id = mysqli_real_escape_string($conn, $_POST['Categoria']); 
     $data_transacao = mysqli_real_escape_string($conn, $_POST['DataTransacao']);
+    $tipo = mysqli_real_escape_string($conn, $_POST['TxtTipo']);
     $valor = mysqli_real_escape_string($conn, $_POST['IntValor']);
 
     // Insere a transação na tabela 'movimentacao'
@@ -29,55 +62,84 @@ if (isset($_POST['CreateTransacao'])) {
         $_SESSION['message'] = "Transação adicionada com sucesso!";
         $_SESSION['type'] = 'success';
 
-    header('Location: '.'despesas.php');
-    exit;
-}
-}
-
-if (isset($_POST['excluir-transacao'])) {
-    $movimentacaoId = mysqli_real_escape_string($conn, $_POST['delete_usuario']);
-    
-    $sql = "DELETE FROM movimentacao WHERE id = '$movimentacaoId'";
-    $result = mysqli_query($conn, $sql);
-
-    $_SESSION['message'] = ($result && mysqli_affected_rows($conn) > 0)
-        ? "Transação com ID {$movimentacaoId} excluída com sucesso!"
-        : "Não foi possível excluir a transação.";
-
-    $_SESSION['type'] = ($result && mysqli_affected_rows($conn) > 0) ? 'success' : 'error';
-
-    header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
-    exit;
-}
-
-if (isset($_POST['edit_usuario'])) {
-    $movimentacaoId = mysqli_real_escape_string($conn, $_POST['usuario_id']);
-    $nome = mysqli_real_escape_string($conn, $_POST['txtNome']);
-    $email = mysqli_real_escape_string($conn, $_POST['txtEmail']);
-    $dataNascimento = mysqli_real_escape_string($conn, $_POST['txtDataNascimento']);
-    $senha = mysqli_real_escape_string($conn, $_POST['txtSenha']);
-
-    $sql = "UPDATE usuarios SET nome = '{$nome}', email = '{$email}', data_nascimento = '{$dataNascimento}'";
-
-    if (!empty($senha)) {
-        $senha = password_hash($senha, PASSWORD_DEFAULT);
-        $sql .= ", senha = '{$senha}'";
+        header('Location: /controle_financeiro/movimentacoes/list-movimentacao.php');
+        exit;
     }
+}
 
-    $sql .= " WHERE id = '{$movimentacaoId}'";
+if(isset($_POST['DeleteTransacao'])) {
+    $id = $_POST['id'];
+    $sql = "DELETE FROM movimentacao WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Transação excluida com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/movimentacoes/list-movimentacao.php');
+        exit;
+    }
+}
+
+if(isset($_POST['EditTransacao'])) {
+    $id = $_POST['id']; 
+    $descricao = mysqli_real_escape_string($conn, trim($_POST['TxtDescricao']));
+    $categoria_id = mysqli_real_escape_string($conn, $_POST['Categoria']); 
+    $data_transacao = mysqli_real_escape_string($conn, $_POST['DataTransacao']);
+    $tipo = mysqli_real_escape_string($conn, $_POST['TxtTipo']);
+    $valor = mysqli_real_escape_string($conn, $_POST['IntValor']);
+
+    $sql = "UPDATE movimentacao SET descricao = '$descricao', categoria_id = '$categoria_id', data_da_transacao = '$data_transacao', valor = '$valor' WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Transação atualizada com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/movimentacoes/list-movimentacao.php');
+        exit;
+    }
+}
+
+//AÇÕES DE MES
+if (isset($_POST['CreateMes'])) {
+    $mes = trim($_POST['txtMes']);
+    $ano = trim($_POST['txtAno']);
+
+    $sql = "INSERT INTO mes (mes, ano) VALUES('$mes', '$ano')";
 
     mysqli_query($conn, $sql);
 
-    if (mysqli_affected_rows($conn) > 0) {
-        $_SESSION['message'] = "Usuário {$movimentacaoId} atualizado com sucesso!";
-        $_SESSION['type'] = 'success';
-    } else {
-        $_SESSION['message'] = "Não foi possível atualizar o usuário {$movimentacaoId}";
-        $_SESSION['type'] = 'error';
-    }
-
-    header("Location: index.php");
-    exit;
+    header('Location: /controle_financeiro/meses/list-mes.php');
+    exit();
 }
+
+if(isset($_POST['EditMes'])) {
+    $id = $_POST['id'];
+    $mes = trim($_POST['txtMes']);
+    $ano = trim($_POST['txtAno']);
+
+    $sql = "UPDATE mes SET mes = '$mes', ano = '$ano' WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Mes atualizado com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/meses/list-mes.php');
+        exit;
+    }
+}        
+
+if(isset($_POST['DeleteMes'])) {
+    $id = $_POST['id'];
+    $sql = "DELETE FROM mes WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Mes excluido com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/meses/list-mes.php');
+        exit;
+    }
+}
+
 
 ?>
