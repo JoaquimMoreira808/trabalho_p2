@@ -2,11 +2,11 @@
 session_start();
 require_once("./conexao.php");
 
-// Consulta para obter os meses
+
 $sql = "SELECT * FROM cadastro_mes";
 $meses = mysqli_query($conn, $sql);
 
-// Consulta para obter o total de entradas, saídas e o saldo total
+
 $sql_saldo = "
     SELECT 
         SUM(CASE WHEN tipo = 'Entrada' THEN valor ELSE 0 END) AS total_entrada,
@@ -15,7 +15,6 @@ $sql_saldo = "
 $result_saldo = mysqli_query($conn, $sql_saldo);
 $saldo = mysqli_fetch_assoc($result_saldo);
 
-// Calculando o saldo total (entrada - saída)
 $saldo_total = $saldo['total_entrada'] - $saldo['total_saida'];
 ?>
 <!DOCTYPE html>
@@ -48,7 +47,7 @@ $saldo_total = $saldo['total_entrada'] - $saldo['total_saida'];
 </div>
 
 <div class="container mt-4">
-    <!-- Exibindo o saldo total, entradas e saídas -->
+
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card text-bg-success">
