@@ -1,10 +1,14 @@
 <?php
-    // Conectar ao banco de dados
-    require_once("../conexao.php");
+require_once("../conexao.php");
 
-    // Consulta para recuperar as categorias
-    $sqlCategorias = "SELECT * FROM categoria";
-    $resultCategorias = mysqli_query($conn, $sqlCategorias);
+$mes_id = isset($_GET['mes_id']) ? $_GET['mes_id'] : null;
+
+$sqlMes = "SELECT * FROM cadastro_mes WHERE id = $mes_id";
+$resultMes = mysqli_query($conn, $sqlMes);
+$mes = mysqli_fetch_assoc($resultMes);
+
+$sqlCategorias = "SELECT * FROM categoria";
+$resultCategorias = mysqli_query($conn, $sqlCategorias);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -14,35 +18,9 @@
     <title>Adicionar - Transação</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/controle_financeiro.css">
 </head>
-<body style="background-color: black;">
-    <div class="px-3 py-2 text-bg-dark border-bottom">
-        <div class="container">
-            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-                <a href="/controle_financeiro/index.php" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
-                    <i class="bi bi-cash-coin" style="margin-right: 15px;font-size: 22px;"></i>
-                    <span style="font-size: 20px;font-weight: bold;">Controle Financeiro</span>
-                </a>
-                <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
-                    <li style="height: fit-content;">
-                        <a href="/controle_financeiro/movimentacoes/list-movimentacao.php" class="nav-link text-white" style="display: flex;align-items: center;">
-                            <svg class="bi d-block mx-auto mb-1" width="24" height="24"></svg>Movimentações
-                        </a>
-                    </li>
-                    <li style="height: fit-content;">
-                        <a href="/controle_financeiro/categorias/list-categoria.php" class="nav-link text-white" style="display: flex;align-items: center;">
-                            <svg class="bi d-block mx-auto mb-1" width="24" height="24"></svg>Categorias
-                        </a>
-                    </li>
-                    <li style="height: fit-content;">
-                        <a href="/controle_financeiro/meses/list-mes.php" class="nav-link text-white" style="display: flex;align-items: center;">
-                            <svg class="bi d-block mx-auto mb-1" width="24" height="24"></svg>Meses
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+<body>
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
@@ -50,11 +28,12 @@
                     <div class="card-header">
                         <h4>
                             Adicionar Transação <i class="bi bi-credit-card-fill"></i>
-                            <a href="/controle_financeiro/movimentacoes/list-movimentacao.php" class="btn btn-light float-end"> <i class="bi bi-arrow-return-left"></i></a>
+                            <a href="/controle_financeiro/movimentacoes/list-movimentacao.php?mes_id=<?= $mes_id ?>" class="btn btn-light float-end"> <i class="bi bi-arrow-return-left"></i></a>
                         </h4>
                     </div>
                     <div class="card-body">
                         <form action="../acoes.php" method="POST">
+                        <input type="hidden" name="mes_id" value="<?= $mes_id ?>">
                             <div class="mb-3">
                                 <label for="TxtDescricao">Descrição</label>
                                 <input type="text" name="TxtDescricao" id="TxtDescricao" class="form-control" required>
@@ -80,7 +59,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="DataTransacao">Data da Transação</label>
-                                <input type="date" name="DataTransacao" id="DataTransacao" class="form-control" required>
+                                <input type="date" name="DataTransacao" id="DataTransacao" class="form-control" min="<?= date('Y-m-01', strtotime($mes['mes_ano'])) ?>" max="<?= date('Y-m-t', strtotime($mes['mes_ano'])) ?>" value="<?= date('Y-m-d', strtotime($mes['mes_ano'].'-01')) ?>" required>
                             </div>
                             <div class="mb-3">
                                 <label for="IntValor">Valor</label>
@@ -88,7 +67,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <button type="submit" name="CreateTransacao" class="btn btn-dark float-end">Salvar</button>
+                                <button type="submit" name="create_transacao" class="btn btn-dark float-end">Salvar</button>
                             </div>
                         </form>
                     </div>

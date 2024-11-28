@@ -1,9 +1,22 @@
 <?php
 session_start();
-require_once("conexao.php");
+require_once("./conexao.php");
 
-$sql = "SELECT * FROM categoria";
-$categorias = mysqli_query($conn, $sql);
+// Consulta para obter os meses
+$sql = "SELECT * FROM cadastro_mes";
+$meses = mysqli_query($conn, $sql);
+
+// Consulta para obter o total de entradas, saídas e o saldo total
+$sql_saldo = "
+    SELECT 
+        SUM(CASE WHEN tipo = 'Entrada' THEN valor ELSE 0 END) AS total_entrada,
+        SUM(CASE WHEN tipo = 'Saida' THEN valor ELSE 0 END) AS total_saida
+    FROM movimentacao";
+$result_saldo = mysqli_query($conn, $sql_saldo);
+$saldo = mysqli_fetch_assoc($result_saldo);
+
+// Calculando o saldo total (entrada - saída)
+$saldo_total = $saldo['total_entrada'] - $saldo['total_saida'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -13,8 +26,9 @@ $categorias = mysqli_query($conn, $sql);
     <title>Controle Financeiro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="./css/controle_financeiro.css">
 </head>
-<body style="background-color: black;">
+<body>
 <div class="px-3 py-2 text-bg-dark border-bottom">
     <div class="container">
         <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
@@ -24,54 +38,85 @@ $categorias = mysqli_query($conn, $sql);
             </a>
             <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
                 <li style="height: fit-content;">
-                    <a href="/controle_financeiro/movimentacoes/list-movimentacao.php" class="nav-link text-white" style="display: flex;align-items: center;">
-                        <svg class="bi d-block mx-auto mb-1" width="24" height="24"></svg>Movimentações
-                    </a>
-                </li>
-                <li style="height: fit-content;">
                     <a href="/controle_financeiro/categorias/list-categoria.php" class="nav-link text-white" style="display: flex;align-items: center;">
                         <svg class="bi d-block mx-auto mb-1" width="24" height="24"></svg>Categorias
-                    </a>
-                </li>
-                <li style="height: fit-content;">
-                    <a href="/controle_financeiro/meses/list-mes.php" class="nav-link text-white" style="display: flex;align-items: center;">
-                        <svg class="bi d-block mx-auto mb-1" width="24" height="24"></svg>Meses
                     </a>
                 </li>
             </ul>
         </div>
     </div>
 </div>
+
 <div class="container mt-4">
-    <h2>Categorias</h2>
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Nome</th>
-                <th>Valor</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            if (mysqli_num_rows($categorias) > 0) {
-                while ($categoria = mysqli_fetch_assoc($categorias)) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($categoria['nome']) . "</td>";
-                    echo "<td>" . htmlspecialchars($movimentacao['valor']) . "</td>";
-                    echo "<td>
-                            <a href='editar_categoria.php?id=" . $categoria['id'] . "' class='btn btn-sm btn-dark'>Editar</a>
-                            <a href='excluir_categoria.php?id=" . $categoria['id'] . "' class='btn btn-sm btn-danger'>Excluir</a>
-                          </td>";
-                    echo "</tr>";
-                }
-            } else {
-                echo "<tr><td colspan='3' class='text-center'>Nenhuma categoria encontrada.</td></tr>";
-            }
-            ?>
-        </tbody>
-    </table>
+    <!-- Exibindo o saldo total, entradas e saídas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-bg-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total de Entrada</h5>
+                    <p class="card-text"><?= number_format($saldo['total_entrada'], 2, ',', '.') ?> R$</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-bg-danger">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total de Saída</h5>
+                    <p class="card-text"><?= number_format($saldo['total_saida'], 2, ',', '.') ?> R$</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-bg-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Saldo Total</h5>
+                    <p class="card-text"><?= number_format($saldo_total, 2, ',', '.') ?> R$</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>
+                        Lista de Meses <i class="bi bi-card-list"></i>
+                        <a href="./meses/create-mes.php" class="btn btn-dark float-end" style="margin-right: 10px;">Adicionar Mês</a>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+                        <?php while ($mes = mysqli_fetch_array($meses)) { ?>
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <?php 
+                                            setlocale(LC_TIME, 'pt_BR.UTF-8');
+                                            $data = DateTime::createFromFormat('Y-m-d', $mes['mes_ano']); 
+                                            $mesFormatado = strftime('%B %Y', $data->getTimestamp());
+                                        ?>
+                                        <h5 class="card-title"><?= $mesFormatado ?></h5>
+                                        <a href="./movimentacoes/list-movimentacao.php?mes_id=<?= $mes['id'] ?>" class="btn btn-primary">Ver Movimentações</a>
+                                        <form action="acoes.php" method="POST" class="d-inline">
+                                            <input type="hidden" name="id" value="<?= $mes['id'] ?>">
+                                            <a href="./movimentacoes/create-movimentacao.php?mes_id=<?= $mes['id'] ?>" class="btn btn-primary">Adicionar Movimentação</a>
+                                        </form>
+                                        <form action="acoes.php" method="POST" class="d-inline">
+                                            <input type="hidden" name="id" value="<?= $mes['id'] ?>">
+                                            <button onclick="return confirm('Tem certeza que deseja excluir?')" name="delete_mes" type="submit" class="btn btn-danger mt-2">Excluir</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

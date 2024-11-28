@@ -56,7 +56,8 @@ CREATE TABLE `movimentacao` (
   `tipo` enum('Entrada','Saida') NOT NULL,
   `data_da_transacao` date NOT NULL,
   `valor` float NOT NULL,
-  `categoria_id` bigint(20) DEFAULT NULL
+  `categoria_id` bigint(20) DEFAULT NULL,
+  `mes_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -81,6 +82,7 @@ ALTER TABLE `categoria`
 ALTER TABLE `movimentacao`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_categoria` (`categoria_id`);
+  ADD KEY `fk_mes` (`mes_id`);
 
 --
 -- AUTO_INCREMENT para tabelas despejadas
@@ -113,6 +115,8 @@ ALTER TABLE `movimentacao`
 --
 ALTER TABLE `movimentacao`
   ADD CONSTRAINT `fk_categoria` FOREIGN KEY (`categoria_id`) REFERENCES `categoria` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_mes` FOREIGN KEY (`mes_id`) REFERENCES `cadastro_mes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

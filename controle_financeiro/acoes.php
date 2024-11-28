@@ -4,7 +4,7 @@ require_once('conexao.php');
 
 
 //AÇÕES DE CATEGORIA
-if (isset($_POST['CreateCategoria'])) {
+if (isset($_POST['create_categoria'])) {
     $nome = trim($_POST['txtNome']);
 
     $sql = "INSERT INTO categoria (nome) VALUES('$nome')";
@@ -15,7 +15,7 @@ if (isset($_POST['CreateCategoria'])) {
     exit();
 }
 
-if(isset($_POST['EditCategoria'])) {
+if(isset($_POST['edit_categoria'])) {
     $id = $_POST['id'];
     $nome = trim($_POST['txtNome']);
 
@@ -30,7 +30,7 @@ if(isset($_POST['EditCategoria'])) {
     }
 }
 
-if(isset($_POST['DeleteCategoria'])) {
+if(isset($_POST['delete_categoria'])) {
     $id = $_POST['id'];
     $sql = "DELETE FROM categoria WHERE id = '$id'";
 
@@ -45,101 +45,121 @@ if(isset($_POST['DeleteCategoria'])) {
 
 
 //AÇÕES DE TRANSAÇÃO
-if (isset($_POST['CreateTransacao'])) {
-
+if (isset($_POST['create_transacao'])) {
     $descricao = mysqli_real_escape_string($conn, trim($_POST['TxtDescricao']));
     $categoria_id = mysqli_real_escape_string($conn, $_POST['Categoria']); 
     $data_transacao = mysqli_real_escape_string($conn, $_POST['DataTransacao']);
     $tipo = mysqli_real_escape_string($conn, $_POST['TxtTipo']);
     $valor = mysqli_real_escape_string($conn, $_POST['IntValor']);
+    $mes_id = $_POST['mes_id'];
 
-    // Insere a transação na tabela 'movimentacao'
-    $sql = "INSERT INTO movimentacao (descricao, categoria_id, data_da_transacao, valor) 
-            VALUES ('$descricao', '$categoria_id', '$data_da_transacao', '$valor')";
+    $sql_check_mes = "SELECT COUNT(*) AS count FROM cadastro_mes WHERE id = $mes_id";
+    $result_check_mes = mysqli_query($conn, $sql_check_mes);
+    $row_check_mes = mysqli_fetch_assoc($result_check_mes);
 
-    // Verifica se a inserção foi bem-sucedida
+    if ($row_check_mes['count'] == 0) {
+        $_SESSION['message'] = "Mês não encontrado!";
+        $_SESSION['type'] = 'danger';
+        header("Location: /controle_financeiro/index.php");
+        exit();
+    }
+
+    $sql = "INSERT INTO movimentacao (descricao, categoria_id, data_da_transacao, valor, mes_id) 
+            VALUES ('$descricao', '$categoria_id', '$data_transacao', '$valor', '$mes_id')";
+
     if (mysqli_query($conn, $sql)) {
         $_SESSION['message'] = "Transação adicionada com sucesso!";
         $_SESSION['type'] = 'success';
 
-        header('Location: /controle_financeiro/movimentacoes/list-movimentacao.php');
-        exit;
+        header("Location: /controle_financeiro/movimentacoes/list-movimentacao.php?mes_id=$mes_id");
+        exit();
+    } else {
+        $_SESSION['message'] = "Erro ao adicionar transação.";
+        $_SESSION['type'] = 'danger';
     }
 }
 
-if(isset($_POST['DeleteTransacao'])) {
+if (isset($_POST['delete_transacao'])) {
     $id = $_POST['id'];
+    $mes_id = $_POST['mes_id']; // Pega o mes_id do formulário
+
     $sql = "DELETE FROM movimentacao WHERE id = '$id'";
 
     if (mysqli_query($conn, $sql)) {
-        $_SESSION['message'] = "Transação excluida com sucesso!";
+        $_SESSION['message'] = "Transação excluída com sucesso!";
         $_SESSION['type'] = 'success';
 
-        header('Location: /controle_financeiro/movimentacoes/list-movimentacao.php');
+        // Redireciona para a listagem do mês correto
+        header("Location: /controle_financeiro/movimentacoes/list-movimentacao.php?mes_id=$mes_id");
         exit;
+    } else {
+        $_SESSION['message'] = "Erro ao excluir transação!";
+        $_SESSION['type'] = 'danger';
     }
 }
 
-if(isset($_POST['EditTransacao'])) {
+if (isset($_POST['edit_transacao'])) {
     $id = $_POST['id']; 
-    $descricao = mysqli_real_escape_string($conn, trim($_POST['TxtDescricao']));
-    $categoria_id = mysqli_real_escape_string($conn, $_POST['Categoria']); 
-    $data_transacao = mysqli_real_escape_string($conn, $_POST['DataTransacao']);
-    $tipo = mysqli_real_escape_string($conn, $_POST['TxtTipo']);
-    $valor = mysqli_real_escape_string($conn, $_POST['IntValor']);
+    $descricao = mysqli_real_escape_string($conn, trim($_POST['txtDescricao']));  // Corrigido
+    $categoria_id = mysqli_real_escape_string($conn, $_POST['txtCategoria']);  // Corrigido
+    $data_transacao = mysqli_real_escape_string($conn, $_POST['txtData']);  // Corrigido
+    $tipo = mysqli_real_escape_string($conn, $_POST['txtTipo']);  // Corrigido
+    $valor = mysqli_real_escape_string($conn, $_POST['txtValor']);  // Corrigido
 
-    $sql = "UPDATE movimentacao SET descricao = '$descricao', categoria_id = '$categoria_id', data_da_transacao = '$data_transacao', valor = '$valor' WHERE id = '$id'";
+    $sql = "UPDATE movimentacao 
+            SET descricao = '$descricao', 
+                categoria_id = '$categoria_id', 
+                data_da_transacao = '$data_transacao', 
+                valor = '$valor', 
+                tipo = '$tipo' 
+            WHERE id = '$id'";
 
     if (mysqli_query($conn, $sql)) {
         $_SESSION['message'] = "Transação atualizada com sucesso!";
         $_SESSION['type'] = 'success';
 
-        header('Location: /controle_financeiro/movimentacoes/list-movimentacao.php');
+        // A variável mes_id precisa estar no $_POST, ou você precisa passar no formulário
+        if (isset($_POST['mes_id'])) {
+            $mes_id = $_POST['mes_id']; 
+            header("Location: /controle_financeiro/movimentacoes/list-movimentacao.php?mes_id=$mes_id");
+        } else {
+            header("Location: /controle_financeiro/movimentacoes/list-movimentacao.php");
+        }
         exit;
+    } else {
+        echo "Erro na atualização: " . mysqli_error($conn); 
     }
 }
+
+
 
 //AÇÕES DE MES
-if (isset($_POST['CreateMes'])) {
-    $mes = trim($_POST['txtMes']);
-    $ano = trim($_POST['txtAno']);
+if (isset($_POST['create_mes'])) {
+    $mesAno = trim($_POST['mes_ano']);
 
-    $sql = "INSERT INTO mes (mes, ano) VALUES('$mes', '$ano')";
+    $mesAno = $mesAno . "-01"; 
 
-    mysqli_query($conn, $sql);
-
-    header('Location: /controle_financeiro/meses/list-mes.php');
-    exit();
-}
-
-if(isset($_POST['EditMes'])) {
-    $id = $_POST['id'];
-    $mes = trim($_POST['txtMes']);
-    $ano = trim($_POST['txtAno']);
-
-    $sql = "UPDATE mes SET mes = '$mes', ano = '$ano' WHERE id = '$id'";
+    $sql = "INSERT INTO cadastro_mes (mes_ano) VALUES('$mesAno')";
 
     if (mysqli_query($conn, $sql)) {
-        $_SESSION['message'] = "Mes atualizado com sucesso!";
-        $_SESSION['type'] = 'success';
-
-        header('Location: /controle_financeiro/meses/list-mes.php');
-        exit;
-    }
-}        
-
-if(isset($_POST['DeleteMes'])) {
-    $id = $_POST['id'];
-    $sql = "DELETE FROM mes WHERE id = '$id'";
-
-    if (mysqli_query($conn, $sql)) {
-        $_SESSION['message'] = "Mes excluido com sucesso!";
-        $_SESSION['type'] = 'success';
-
-        header('Location: /controle_financeiro/meses/list-mes.php');
-        exit;
+        header('Location: /controle_financeiro/index.php');
+        exit();
+    } else {
+        echo "Error: " . $sql . "<br>" . mysqli_error($conn);
     }
 }
 
+if (isset($_POST['delete_mes'])) {
+    $id = $_POST['id'];
+    $sql = "DELETE FROM cadastro_mes WHERE id = '$id'";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = "Mes excluído com sucesso!";
+        $_SESSION['type'] = 'success';
+
+        header('Location: /controle_financeiro/index.php');
+        exit;
+    }
+}
 
 ?>
